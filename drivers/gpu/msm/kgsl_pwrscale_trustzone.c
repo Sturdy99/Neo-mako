@@ -104,6 +104,13 @@ static inline void interactive_work_fn(struct work_struct *work)
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	struct tz_priv *priv = pwrscale->priv;
 	int val_adjust = 0;
+	int boost_level;
+
+#ifdef CONFIG_TOUCHSCREEN_LGE_BOOST
+	boost_level = pwr->num_pwrlevels - lge_boost_level- 1;
+#else
+	boost_level = pwr->num_pwrlevels - 2;
+#endif
 
 	/*
 	 * No need to cast u32 anymore, do_div() does the job :)
@@ -128,20 +135,20 @@ static inline void interactive_work_fn(struct work_struct *work)
 	 * notice a few frame drops while this algorithm didn't scale past 128MHz
 	 * on simple operations. This is fixed with up_threshold being scaled
 	 */
-	if (pwr->active_pwrlevel > 2)
+	if (pwr->active_pwrlevel > boost_level)
 		gpu_stats.threshold = (up_threshold / pwr->active_pwrlevel) + up_differential;
 	else
 		gpu_stats.threshold = up_threshold - up_differential;
 
 	if ((gpu_stats.busy_time_ms * 100) > (gpu_stats.total_time_ms * gpu_stats.threshold))
 	{
-		if ((pwr->active_pwrlevel > 0) &&
+		if ((pwr->active_pwrlevel > pwr->max_pwrlevel) &&
 			(pwr->active_pwrlevel <= (pwr->num_pwrlevels - 1)))
 			val_adjust = -1;
 	}
 	else if ((gpu_stats.busy_time_ms * 100) < (gpu_stats.total_time_ms * down_threshold))
 	{
-		if ((pwr->active_pwrlevel >= 0) &&
+		if ((pwr->active_pwrlevel >= pwr->max_pwrlevel) &&
 			(pwr->active_pwrlevel < (pwr->num_pwrlevels - 1)))
 			val_adjust = 1;
 	}
@@ -247,7 +254,7 @@ static void tz_idle(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	if(lge_boosted)
 	{
 		// calculate boost level
-		val = KGSL_MAX_PWRLEVELS - lge_boost_level - 2;
+		val = pwr->num_pwrlevels  - lge_boost_level - 1;
 
 		// check boost freq more than current freq
 		if(val < pwr->active_pwrlevel)
@@ -322,6 +329,7 @@ static void tz_busy(struct kgsl_device *device,
 static void tz_sleep(struct kgsl_device *device,
 	struct kgsl_pwrscale *pwrscale)
 {
+	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	struct tz_priv *priv = pwrscale->priv;
 
 	__secure_tz_entry(TZ_RESET_ID, 0, device->id);
@@ -333,7 +341,7 @@ static void tz_sleep(struct kgsl_device *device,
 #ifdef CONFIG_TOUCHSCREEN_LGE_BOOST
 		if(!lge_boosted)
 #endif
-		kgsl_pwrctrl_pwrlevel_change(device, KGSL_MAX_PWRLEVELS - 2);
+		kgsl_pwrctrl_pwrlevel_change(device, pwr->num_pwrlevels - 1);
 
 	priv->no_switch_cnt = 0;
 	priv->bin.total_time = 0;
