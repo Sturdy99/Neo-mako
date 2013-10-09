@@ -7,7 +7,7 @@ if [ "$1" != "JSS" -a "$1" != "JWR" ]; then
 fi
 
 EXTRA=$1;
-BUILD_VER=$BASE_VER$VER"-"$EXTRA
+BUILD_VER=$BASE_VER$VER$BETA"-"$EXTRA
 BUILD_OPT_H=include/generated/build_opt.h
 
 export LOCALVERSION="~"`echo $BUILD_VER`

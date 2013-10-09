@@ -18,7 +18,8 @@ export ADDIN_MODULE_DIR=$PACKAGE_DIR/modules
 
 # Prepare build env
 export BASE_VER="Neo"
-export VER="-013"
+export VER="-014"
+export BETA=""
 export CROSS_COMPILE=$PARENT_DIR/Neo-toolchain/arm-linux-4.8.2-2013.09-neo/bin/arm-linux-gnueabihf-
 export ARCH=arm
 export SUBARCH=arm
@@ -28,7 +29,7 @@ export KBUILD_BUILD_HOST="ubuntu"
 cd $KERNEL_DIR
 
 echo 
-echo "Building "$BASE_VER$VER
+echo "Building "$BASE_VER$VER$BETA
 echo "---------------------------------------"
 echo "CROSS_COMPILE="$CROSS_COMPILE
 echo "ARCH="$ARCH
