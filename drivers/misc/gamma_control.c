@@ -24,37 +24,37 @@ extern void update_vals(int type, int array_pos, int val);
 /*
  * Whites for RED, GREEN and BLUE
  */
-unsigned int red_whites_val = 32;
-unsigned int green_whites_val = 32;
-unsigned int blue_whites_val = 32;
+unsigned int red_whites_val = 0;
+unsigned int green_whites_val = 0;
+unsigned int blue_whites_val = 0;
 
 /*
  * Grays for RED, GREEN and BLUE
  */
-unsigned int red_greys_val = 64;
-unsigned int green_greys_val = 64;
-unsigned int blue_greys_val = 64;
+unsigned int red_greys_val = 0;
+unsigned int green_greys_val = 0;
+unsigned int blue_greys_val = 0;
 
 /*
  * Mids for RED, GREEN and BLUE
  */
-unsigned int red_mids_val = 68;
-unsigned int green_mids_val = 68;
-unsigned int blue_mids_val = 68;
+unsigned int red_mids_val = 39;
+unsigned int green_mids_val = 39;
+unsigned int blue_mids_val = 39;
 
 /*
  * Blacks for RED, GREEN and BLUE
  */
-unsigned int red_blacks_val = 118;
-unsigned int green_blacks_val = 118;
-unsigned int blue_blacks_val = 118;
+unsigned int red_blacks_val = 119;
+unsigned int green_blacks_val = 119;
+unsigned int blue_blacks_val = 119;
 
 /*
  * These values are common to the RGB spectrum in this implementation
  */
-unsigned int contrast_val = 25;
-unsigned int brightness_val = 4;
-unsigned int saturation_val = 66;
+unsigned int contrast_val = 6;
+unsigned int brightness_val = 0;
+unsigned int saturation_val = 2;
 
 /*
  * Sysfs get/set entries
