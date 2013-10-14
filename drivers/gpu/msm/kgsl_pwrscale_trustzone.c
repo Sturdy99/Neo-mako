@@ -229,9 +229,13 @@ static void tz_wake(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 {
 	struct tz_priv *priv = pwrscale->priv;
 	if (device->state != KGSL_STATE_NAP){
-		if(priv->governor == TZ_GOVERNOR_ONDEMAND ||
-		 priv->governor == TZ_GOVERNOR_INTERACTIVE)
+		if(priv->governor == TZ_GOVERNOR_ONDEMAND)
 			kgsl_pwrctrl_pwrlevel_change(device, device->pwrctrl.default_pwrlevel);
+		else if(priv->governor == TZ_GOVERNOR_INTERACTIVE)
+		{
+			kgsl_pwrctrl_pwrlevel_change(device, device->pwrctrl.default_pwrlevel);
+			schedule_delayed_work(&interactive_work, msecs_to_jiffies(sample_time_ms));
+		}
 		else if(priv->governor == TZ_GOVERNOR_PERFORMANCE)
 			kgsl_pwrctrl_pwrlevel_change(device, device->pwrctrl.max_pwrlevel);
 	}
@@ -342,6 +346,9 @@ static void tz_sleep(struct kgsl_device *device,
 		if(!lge_boosted)
 #endif
 		kgsl_pwrctrl_pwrlevel_change(device, pwr->num_pwrlevels - 1);
+
+	if (priv->governor == TZ_GOVERNOR_INTERACTIVE)
+		cancel_delayed_work(&interactive_work);
 
 	priv->no_switch_cnt = 0;
 	priv->bin.total_time = 0;
