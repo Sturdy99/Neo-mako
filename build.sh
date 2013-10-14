@@ -18,7 +18,7 @@ export ADDIN_MODULE_DIR=$PACKAGE_DIR/modules
 
 # Prepare build env
 export BASE_VER="Neo"
-export VER="-014"
+export VER="-015"
 export BETA=""
 export CROSS_COMPILE=$PARENT_DIR/Neo-toolchain/arm-linux-4.8.2-2013.09-neo/bin/arm-linux-gnueabihf-
 export ARCH=arm
