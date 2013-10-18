@@ -21,7 +21,6 @@
 #include <linux/spinlock.h>
 #include <mach/socinfo.h>
 #include <mach/scm.h>
-#include <linux/workqueue.h>
 
 #include "kgsl.h"
 #include "kgsl_pwrscale.h"
@@ -72,8 +71,7 @@ static int __secure_tz_entry(u32 cmd, u32 val, u32 id)
 }
 #endif /* CONFIG_MSM_SCM */
 
-struct delayed_work interactive_work;
-
+unsigned long window_time = 0;
 unsigned long sample_time_ms = 100;
 unsigned int up_threshold = 60;
 unsigned int down_threshold = 25;
@@ -94,17 +92,16 @@ struct clk_scaling_stats {
 };
 
 static struct clk_scaling_stats gpu_stats;
-static struct kgsl_pwrscale *ptrPwrscale;
-static struct kgsl_device *ptrDev;
 
-static inline void interactive_work_fn(struct work_struct *work)
+static void tz_interactive(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 {
-	struct kgsl_device *device = ptrDev;
-	struct kgsl_pwrscale *pwrscale = ptrPwrscale;
 	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	struct tz_priv *priv = pwrscale->priv;
 	int val_adjust = 0;
 	int boost_level;
+
+	if (window_time && time_is_after_jiffies(window_time + msecs_to_jiffies(sample_time_ms)))
+		return;
 
 #ifdef CONFIG_TOUCHSCREEN_LGE_BOOST
 	boost_level = pwr->num_pwrlevels - lge_boost_level- 1;
@@ -158,8 +155,7 @@ static inline void interactive_work_fn(struct work_struct *work)
 
 	priv->bin.total_time = 0;
 	priv->bin.busy_time = 0;
-
-	schedule_delayed_work(&interactive_work, msecs_to_jiffies(sample_time_ms));
+	window_time = jiffies;
 }
 
 static ssize_t tz_governor_show(struct kgsl_device *device,
@@ -199,16 +195,12 @@ static ssize_t tz_governor_store(struct kgsl_device *device,
 	else if (!strncmp(str, interactive_text, strlen(interactive_text) - 2))
 	{
 		priv->governor = TZ_GOVERNOR_INTERACTIVE;
-		schedule_delayed_work(&interactive_work, msecs_to_jiffies(sample_time_ms));
 	}
 	else if (!strncmp(str, "performance", 11))
 	{
 		priv->governor = TZ_GOVERNOR_PERFORMANCE;
 		kgsl_pwrctrl_pwrlevel_change(device, pwr->max_pwrlevel);
 	}
-
-	if(priv->governor != TZ_GOVERNOR_INTERACTIVE)
-		cancel_delayed_work(&interactive_work);
 
 	mutex_unlock(&device->mutex);
 	return count;
@@ -234,7 +226,6 @@ static void tz_wake(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 		else if(priv->governor == TZ_GOVERNOR_INTERACTIVE)
 		{
 			kgsl_pwrctrl_pwrlevel_change(device, device->pwrctrl.default_pwrlevel);
-			schedule_delayed_work(&interactive_work, msecs_to_jiffies(sample_time_ms));
 		}
 		else if(priv->governor == TZ_GOVERNOR_PERFORMANCE)
 			kgsl_pwrctrl_pwrlevel_change(device, device->pwrctrl.max_pwrlevel);
@@ -289,7 +280,10 @@ static void tz_idle(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 
 	/* In "interactive" mode the clock speed handle by work queue thread */
 	if (priv->governor == TZ_GOVERNOR_INTERACTIVE)
+	{
+		tz_interactive(device, pwrscale);
 		return;
+	}
 
 	/* If the GPU has stayed in turbo mode for a while, *
 	* stop writing out values. */
@@ -347,9 +341,6 @@ static void tz_sleep(struct kgsl_device *device,
 #endif
 		kgsl_pwrctrl_pwrlevel_change(device, pwr->num_pwrlevels - 1);
 
-	if (priv->governor == TZ_GOVERNOR_INTERACTIVE)
-		cancel_delayed_work(&interactive_work);
-
 	priv->no_switch_cnt = 0;
 	priv->bin.total_time = 0;
 	priv->bin.busy_time = 0;
@@ -363,8 +354,6 @@ static int tz_init(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	gpu_stats.total_time_ms = 0;
 	gpu_stats.busy_time_ms = 0;
 	gpu_stats.threshold = 0;
-	ptrPwrscale = pwrscale;
-	ptrDev = device;
 
 	priv = pwrscale->priv = kzalloc(sizeof(struct tz_priv), GFP_KERNEL);
 	if (pwrscale->priv == NULL)
@@ -373,11 +362,6 @@ static int tz_init(struct kgsl_device *device, struct kgsl_pwrscale *pwrscale)
 	priv->governor = TZ_GOVERNOR_INTERACTIVE;
 	spin_lock_init(&tz_lock);
 	kgsl_pwrscale_policy_add_files(device, pwrscale, &tz_attr_group);
-
-	INIT_DELAYED_WORK(&interactive_work, interactive_work_fn);
-
-	if (priv->governor == TZ_GOVERNOR_INTERACTIVE)
-		schedule_delayed_work(&interactive_work, msecs_to_jiffies(sample_time_ms));
 
 	return 0;
 }
