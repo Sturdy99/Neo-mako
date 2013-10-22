@@ -275,10 +275,10 @@ static VOS_STATUS btcSendBTEvent(tpAniSirGlobal pMac, tpSmeBtEvent pBtEvent)
     \param  pBtEvent -  Pointer to a caller allocated object of type tSmeBtEvent.
                         Caller owns the memory and is responsible for freeing it.
     \return VOS_STATUS
-            VOS_STATUS_E_FAILURE – BT Event not passed to HAL. This can happen
+            VOS_STATUS_E_FAILURE ï¿½ BT Event not passed to HAL. This can happen
                                    if driver has not yet been initialized or if BTC
                                    Events Layer has been disabled.
-            VOS_STATUS_SUCCESS   – BT Event passed to HAL
+            VOS_STATUS_SUCCESS   ï¿½ BT Event passed to HAL
   ---------------------------------------------------------------------------*/
 VOS_STATUS btcSignalBTEvent (tHalHandle hHal, tpSmeBtEvent pBtEvent)
 {
@@ -1131,7 +1131,9 @@ static VOS_STATUS btcDeferDisconnectEventForACL( tpAniSirGlobal pMac, tpSmeBtEve
             if( BT_EVENT_ACL_CONNECTION_COMPLETE == pAclEventHist->btEventType[i] )
             {
                 //make sure we can cancel the link
-                if( (i > 0) && (BT_EVENT_CREATE_ACL_CONNECTION == pAclEventHist->btEventType[i - 1]) )
+                if( (i > 0)
+                		&& (i < ARRAY_SIZE(pAclEventHist->btEventType))
+                		&& (BT_EVENT_CREATE_ACL_CONNECTION == pAclEventHist->btEventType[i - 1]) )
                 {
                     fDone = VOS_TRUE;
                     if(i == 1)
@@ -1216,7 +1218,9 @@ static VOS_STATUS btcDeferDisconnectEventForSync( tpAniSirGlobal pMac, tpSmeBtEv
             if( BT_EVENT_SYNC_CONNECTION_COMPLETE == pSyncEventHist->btEventType[i] )
             {
                 //make sure we can cancel the link
-                if( (i > 0) && (BT_EVENT_CREATE_SYNC_CONNECTION == pSyncEventHist->btEventType[i - 1]) )
+                if( (i > 0)
+                		&& (i < ARRAY_SIZE(pSyncEventHist->btEventType))
+                		&& (BT_EVENT_CREATE_SYNC_CONNECTION == pSyncEventHist->btEventType[i - 1]) )
                 {
                     fDone = VOS_TRUE;
                     if(i == 1)
