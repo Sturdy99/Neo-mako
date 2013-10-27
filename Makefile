@@ -246,8 +246,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = $(CCACHE) gcc
 HOSTCXX      = $(CCACHE) g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer
-HOSTCXXFLAGS = -O3
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer
+HOSTCXXFLAGS = -Ofast
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -353,11 +353,21 @@ CHECK		= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 
-NEO_FLAGS	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -mcpu=cortex-a9 -mtune=cortex-a15 -marm -march=armv7-a -mfpu=neon -funsafe-math-optimizations -ftree-vectorize -mvectorize-with-neon-quad
-CFLAGS_MODULE   = -fno-pic -DMODULE $(NEO_FLAGS)
-AFLAGS_MODULE   = -DMODULE $(NEO_FLAGS)
+
+#
+# Optimization Mod
+#
+SNAP_FLAGS	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant
+LIN_FLAGS	= -marm -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations -ftree-vectorize -mvectorize-with-neon-quad
+CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
+NEO_FLAGS	= -Ofast $(SNAP_FLAGS) $(LIN_FLAGS)
+
+MODFLAGS	= -DMODULE $(NEO_FLAGS)
+
+CFLAGS_MODULE   = -fno-pic $(MODFLAGS)
+AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
-CFLAGS_KERNEL	= $(NEO_FLAGS)
+CFLAGS_KERNEL	= -O2 $(SNAP_FLAGS) $(LIN_FLAGS)
 AFLAGS_KERNEL	= 
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
@@ -369,15 +379,7 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include $(srctree)/include/linux/kconfig.h
 
-KBUILD_CPPFLAGS := -D__KERNEL__
-
-
-#
-# LINARO OPT
-#
-CFLAGS_A15 = -mcpu=cortex-a9 -mtune=cortex-a15 -marm -march=armv7-a -mfpu=neon -funsafe-math-optimizations -ftree-vectorize
-CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
-KERNEL_MODS	= $(CFLAGS_A15) $(CFLAGS_MODULO)
+KBUILD_CPPFLAGS := -D__KERNEL__  $(NEO_FLAGS)
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
@@ -386,14 +388,14 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-delete-null-pointer-checks \
 		   -mno-unaligned-access \
 		   -Wno-sizeof-pointer-memaccess \
-		   $(KERNEL_MODS)
+		   $(NEO_FLAGS)
 
-KBUILD_AFLAGS_KERNEL :=
-KBUILD_CFLAGS_KERNEL :=
+KBUILD_AFLAGS_KERNEL := $(AFLAGS_KERNEL)
+KBUILD_CFLAGS_KERNEL := $(CFLAGS_KERNEL)
 KBUILD_AFLAGS   := -D__ASSEMBLY__
-KBUILD_AFLAGS_MODULE  := -DMODULE
-KBUILD_CFLAGS_MODULE  := -DMODULE
-KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
+KBUILD_AFLAGS_MODULE  := $(AFLAGS_MODULE)
+KBUILD_CFLAGS_MODULE  := $(CFLAGS_MODULE)
+KBUILD_LDFLAGS_MODULE := $(LDFLAGS_MODULE)
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
@@ -580,7 +582,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
-KBUILD_CFLAGS	+= -O3
+KBUILD_CFLAGS	+= -Ofast
 endif
 
 include $(srctree)/arch/$(SRCARCH)/Makefile
