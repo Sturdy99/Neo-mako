@@ -147,7 +147,7 @@ static struct msm_bus_scale_pdata bus_scale_data __initdata = {
 };
 
 #ifdef CONFIG_CPU_OVERCLOCK
-#define L2_BW		6
+#define L2_BW		5
 #define L2_IDX_1	17
 #define L2_IDX_2	18
 #else
