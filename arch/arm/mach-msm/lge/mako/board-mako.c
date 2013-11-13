@@ -1453,12 +1453,15 @@ static struct msm_rpmrs_platform_data msm_rpmrs_data __initdata = {
 	.levels = &msm_rpmrs_levels[0],
 	.num_levels = ARRAY_SIZE(msm_rpmrs_levels),
 	.vdd_mem_levels  = {
+#ifdef CONFIG_CPU_OVERCLOCK
+		[MSM_RPMRS_VDD_MEM_RET_LOW]	= 500000,
+		[MSM_RPMRS_VDD_MEM_RET_HIGH]	= 750000,
+		[MSM_RPMRS_VDD_MEM_ACTIVE]	= 1050000,
+		[MSM_RPMRS_VDD_MEM_MAX]		= 1250000,
+#else
 		[MSM_RPMRS_VDD_MEM_RET_LOW]	= 750000,
 		[MSM_RPMRS_VDD_MEM_RET_HIGH]	= 750000,
 		[MSM_RPMRS_VDD_MEM_ACTIVE]	= 1050000,
-#ifdef CONFIG_CPU_OVERCLOCK
-		[MSM_RPMRS_VDD_MEM_MAX]		= 1250000,
-#else
 		[MSM_RPMRS_VDD_MEM_MAX]		= 1150000,
 #endif
 	},
