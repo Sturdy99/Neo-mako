@@ -339,7 +339,7 @@ static void tz_sleep(struct kgsl_device *device,
 #ifdef CONFIG_TOUCHSCREEN_LGE_BOOST
 		if(!lge_boosted)
 #endif
-		kgsl_pwrctrl_pwrlevel_change(device, pwr->num_pwrlevels - 1);
+		kgsl_pwrctrl_pwrlevel_change(device, pwr->num_pwrlevels - 2);
 
 	priv->no_switch_cnt = 0;
 	priv->bin.total_time = 0;
