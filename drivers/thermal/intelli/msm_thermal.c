@@ -30,6 +30,8 @@
 #define DEFAULT_POLLING_MS	250
 /* last 3 minutes based on 250ms polling cycle */
 #define MAX_HISTORY_SZ		((3*60*1000) / DEFAULT_POLLING_MS)
+/* limit minimum throttle cpu freq */
+#define MSM_THERMAL_CPU_MIN	1026000
 
 struct msm_thermal_stat_data {
 	int32_t temp_history[MAX_HISTORY_SZ];
@@ -82,10 +84,14 @@ static int msm_thermal_get_freq_table(void)
 		goto fail;
 	}
 
-	while (table[i].frequency != CPUFREQ_TABLE_END)
-		i++;
-
 	limit_idx_low = 0;
+	while (table[i].frequency != CPUFREQ_TABLE_END)
+	{
+		if(table[i].frequency == MSM_THERMAL_CPU_MIN)
+			limit_idx_low = i;
+		i++;
+	}
+
 	limit_idx_high = limit_idx = i - 1;
 	BUG_ON(limit_idx_high <= 0 || limit_idx_high <= limit_idx_low);
 fail:
