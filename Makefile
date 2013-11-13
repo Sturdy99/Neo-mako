@@ -358,16 +358,16 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 # Optimization Mod
 #
 SNAP_FLAGS	= -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant
-LIN_FLAGS	= -marm -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations -ftree-vectorize -mvectorize-with-neon-quad
+LIN_FLAGS	= -marm -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations
 CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
 NEO_FLAGS	= -Ofast $(SNAP_FLAGS) $(LIN_FLAGS)
 
 MODFLAGS	= -DMODULE $(NEO_FLAGS)
 
-CFLAGS_MODULE   = -fno-pic $(MODFLAGS)
-AFLAGS_MODULE   = $(MODFLAGS)
+CFLAGS_MODULE   = -fno-pic
+AFLAGS_MODULE   = 
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
-CFLAGS_KERNEL	= -O2 $(SNAP_FLAGS) $(LIN_FLAGS)
+CFLAGS_KERNEL	= -O2
 AFLAGS_KERNEL	= 
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 

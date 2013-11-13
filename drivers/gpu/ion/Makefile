@@ -1,4 +1,4 @@
-ccflags-y := -Ofast -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations -ftree-vectorize -mvectorize-with-neon-quad
+ccflags-y := -Ofast -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr -ffast-math -fsingle-precision-constant -marm -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a15 -mfpu=neon -funsafe-math-optimizations
 
 obj-$(CONFIG_ION) +=	ion.o ion_heap.o ion_system_heap.o ion_carveout_heap.o ion_iommu_heap.o ion_cp_heap.o
 obj-$(CONFIG_CMA) += ion_cma_heap.o
