@@ -362,10 +362,10 @@ LIN_FLAGS	= -marm -march=armv7-a -mcpu=cortex-a9 -mtune=cortex-a15 -mfpu=neon -f
 CFLAGS_MODULO = -fmodulo-sched -fmodulo-sched-allow-regmoves
 NEO_FLAGS	= -Ofast $(SNAP_FLAGS) $(LIN_FLAGS)
 
-MODFLAGS	= -DMODULE $(NEO_FLAGS)
+MODFLAGS	= -DMODULE
 
-CFLAGS_MODULE   = -fno-pic
-AFLAGS_MODULE   = 
+CFLAGS_MODULE   = -fno-pic $(MODFLAGS)
+AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  = -T $(srctree)/scripts/module-common.lds
 CFLAGS_KERNEL	= -O2
 AFLAGS_KERNEL	= 
